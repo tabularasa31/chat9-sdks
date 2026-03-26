@@ -48,3 +48,14 @@ This repository currently contains:
 - a reference Python SDK implementation
 
 Go and PHP package implementations are planned as part of the same Phase 1 rollout.
+
+## Python Publishing
+
+The Python SDK is packaged from [`python/`](python/).
+
+Release expectations:
+
+- versioning follows semver
+- package artifacts must build cleanly as both sdist and wheel
+- `twine check` must pass before release
+- tagged releases `v*` trigger the Python release workflow

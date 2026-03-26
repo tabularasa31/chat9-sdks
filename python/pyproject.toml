@@ -13,13 +13,40 @@ authors = [
   { name = "Chat9" }
 ]
 dependencies = []
+keywords = ["chat9", "sdk", "hmac", "token", "verification"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security :: Cryptography",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0", "ruff>=0.11.0"]
+dev = [
+  "build>=1.2.0",
+  "pytest>=8.0.0",
+  "ruff>=0.11.0",
+  "twine>=5.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/tabularasa31/chat9-sdks"
+Repository = "https://github.com/tabularasa31/chat9-sdks"
+Issues = "https://github.com/tabularasa31/chat9-sdks/issues"
+Changelog = "https://github.com/tabularasa31/chat9-sdks/blob/main/CHANGELOG.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-q"
 
 [tool.ruff]
 line-length = 100
 
+[tool.setuptools.packages.find]
+include = ["chat9*"]

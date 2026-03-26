@@ -1,0 +1,85 @@
+name: release-python
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    outputs:
+      package-version: ${{ steps.package_version.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[dev]
+      - name: Run checks
+        run: |
+          python -m ruff check chat9 tests
+          python -m pytest -q
+          python -m build
+          python -m twine check dist/*
+      - name: Read package version
+        id: package_version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tomllib
+
+          pyproject = Path("pyproject.toml")
+          version = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
+          Path("/tmp/package_version.txt").write_text(version, encoding="utf-8")
+          print(f"value={version}")
+          PY
+          echo "value=$(cat /tmp/package_version.txt)" >> "$GITHUB_OUTPUT"
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: python/dist/*
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*
