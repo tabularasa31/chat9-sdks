@@ -120,5 +120,13 @@
     "secret": "secret_minimal_123",
     "now": 1700000000,
     "expected_error": "INVALID_SIGNATURE"
+  },
+  {
+    "name": "invalid_base64_chars",
+    "description": "Payload segment contains '!' which is outside the base64 alphabet. HMAC is valid so the decoder reaches binascii.Error, not INVALID_SIGNATURE.",
+    "token": "a!b.3f705baccd6f94b6ca35e21abd3b64f9109309e5ac5640432b8f134f12a246e0",
+    "secret": "secret_invalid_b64_chars",
+    "now": 1700000000,
+    "expected_error": "INVALID_TOKEN_FORMAT"
   }
 ]

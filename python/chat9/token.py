@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import hmac
 import json
 import time
 from typing import Any
 
-from .errors import SupportBotError
+from .errors import Chat9Error
 from .validation import require_secret, require_ttl, require_user_id, validate_optional_fields
 
 
@@ -20,7 +21,7 @@ def _current_utc_seconds() -> int:
 
 
 def _raise(code: str, message: str) -> None:
-    raise SupportBotError(code, message)
+    raise Chat9Error(code, message)
 
 
 def _canonical_json(value: dict[str, Any]) -> str:
@@ -43,7 +44,7 @@ def _parse_json_object(raw_text: str) -> dict[str, Any]:
     try:
         value = json.loads(raw_text, object_pairs_hook=_hook)
     except (_DuplicateKeyError, json.JSONDecodeError) as exc:
-        raise SupportBotError("INVALID_TOKEN_FORMAT", "payload must be valid JSON") from exc
+        raise Chat9Error("INVALID_TOKEN_FORMAT", "payload must be valid JSON") from exc
 
     if not isinstance(value, dict):
         _raise("INVALID_TOKEN_FORMAT", "payload must be a JSON object")
@@ -53,8 +54,8 @@ def _parse_json_object(raw_text: str) -> dict[str, Any]:
 def _decode_payload_segment(segment: str) -> dict[str, Any]:
     try:
         raw_bytes = base64.b64decode(segment, validate=True)
-    except Exception as exc:  # pragma: no cover
-        raise SupportBotError("INVALID_TOKEN_FORMAT", "payload segment must be canonical Base64") from exc
+    except binascii.Error as exc:
+        raise Chat9Error("INVALID_TOKEN_FORMAT", "payload segment must be canonical Base64") from exc
 
     if _canonical_b64(raw_bytes) != segment:
         _raise("INVALID_TOKEN_FORMAT", "payload segment must be canonical Base64")
@@ -62,7 +63,7 @@ def _decode_payload_segment(segment: str) -> dict[str, Any]:
     try:
         raw_text = raw_bytes.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise SupportBotError("INVALID_TOKEN_FORMAT", "payload must be UTF-8") from exc
+        raise Chat9Error("INVALID_TOKEN_FORMAT", "payload must be UTF-8") from exc
 
     return _parse_json_object(raw_text)
 
@@ -126,9 +127,10 @@ def verifyToken(token: str, secret: str) -> dict[str, Any]:
         _raise("INVALID_TOKEN_FORMAT", "token must contain exactly two non-empty segments")
 
     payload_segment, provided_signature = parts
-    payload = _decode_payload_segment(payload_segment)
-    _validate_verified_payload(payload)
 
+    # Verify signature before touching payload content so that structural
+    # errors in an unauthenticated payload cannot be distinguished from a
+    # bad signature via different error codes.
     expected_signature = hmac.new(
         secret.encode("utf-8"),
         payload_segment.encode("utf-8"),
@@ -136,6 +138,9 @@ def verifyToken(token: str, secret: str) -> dict[str, Any]:
     ).hexdigest()
     if not hmac.compare_digest(expected_signature, provided_signature):
         _raise("INVALID_SIGNATURE", "token signature is invalid")
+
+    payload = _decode_payload_segment(payload_segment)
+    _validate_verified_payload(payload)
 
     if _current_utc_seconds() >= payload["exp"]:
         _raise("EXPIRED_TOKEN", "token has expired")

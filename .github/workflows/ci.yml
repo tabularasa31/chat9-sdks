@@ -59,4 +59,4 @@ jobs:
           python -m pip install .[dev]
       - name: Verify golden vectors against Python SDK
         working-directory: python
-        run: python -m pytest -q tests/test_fixtures.py -k "verify or generate"
+        run: python -m pytest -q tests/test_fixtures.py

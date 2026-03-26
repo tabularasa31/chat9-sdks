@@ -158,25 +158,26 @@ Base64 requirements:
 
 ## Verification Rules
 
-`verifyToken` must:
+`verifyToken` must apply checks in the following order:
 
-- require exactly one `.` separator producing exactly two non-empty segments
-- require canonical padded standard Base64 in the payload segment
-- decode payload as UTF-8 JSON
-- reject duplicate object keys as `INVALID_TOKEN_FORMAT`
-- require the payload to be a JSON object
-- require `exp` to be an integer JSON number only
-- reject `exp` if float, string, boolean, or null
-- validate optional fields if present
-- verify the signature using constant-time comparison
-- reject expired tokens when `now >= exp`
-- preserve unknown fields on success
+1. Require exactly one `.` separator producing exactly two non-empty segments
+2. Verify the HMAC-SHA256 signature using constant-time comparison — any structural error in the payload must not be observable before authentication succeeds
+3. Require canonical padded standard Base64 in the payload segment
+4. Decode payload as UTF-8 JSON
+5. Reject duplicate object keys as `INVALID_TOKEN_FORMAT`
+6. Require the payload to be a JSON object
+7. Require `exp` to be an integer JSON number only; reject if float, string, boolean, or null
+8. Validate optional fields if present
+9. Reject expired tokens when `now >= exp`
+10. Preserve unknown fields on success
+
+Signature verification must precede all payload content checks so that an attacker cannot distinguish a structurally malformed payload from a bad signature without possessing the secret.
 
 Malformed token shape, bad Base64, invalid JSON, duplicate keys, non-object payload, and invalid `exp` type are all `INVALID_TOKEN_FORMAT`.
 
 ## Error Taxonomy
 
-All Phase 1 SDKs must expose a typed `SupportBotError` with:
+All Phase 1 SDKs must expose a typed `Chat9Error` with:
 
 - `code`
 - `message`
