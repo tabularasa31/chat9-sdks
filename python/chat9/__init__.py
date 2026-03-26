@@ -1,4 +1,4 @@
-from .errors import SupportBotError
+from .errors import Chat9Error
 from .token import generateToken, verifyToken
 
-__all__ = ["SupportBotError", "generateToken", "verifyToken"]
+__all__ = ["Chat9Error", "generateToken", "verifyToken"]

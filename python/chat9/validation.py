@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .errors import SupportBotError
+from .errors import Chat9Error
 
 
 _EMAIL_SPACE_RE = re.compile(r"\s")
@@ -12,7 +12,7 @@ _TIMEZONE_RE = re.compile(r"^[A-Za-z_]+(?:/[A-Za-z0-9_+\-]+)+$")
 
 
 def _raise(code: str, message: str) -> None:
-    raise SupportBotError(code, message)
+    raise Chat9Error(code, message)
 
 
 def require_secret(secret: Any) -> str:
