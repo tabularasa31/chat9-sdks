@@ -55,7 +55,7 @@ def _decode_payload_segment(segment: str) -> dict[str, Any]:
     pad = "=" * (-len(segment) % 4)
     try:
         raw_bytes = base64.urlsafe_b64decode(segment + pad)
-    except binascii.Error as exc:
+    except (binascii.Error, UnicodeEncodeError) as exc:
         raise Chat9Error("INVALID_TOKEN_FORMAT", "payload segment must be canonical base64url") from exc
 
     if _canonical_b64(raw_bytes) != segment:
