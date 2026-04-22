@@ -29,14 +29,14 @@ No public `now` parameter is allowed. Tests may freeze time internally.
 The token format is exactly:
 
 ```text
-<base64(payload_json_utf8)>.<hmac_sha256_hex(base64_segment)>
+<base64url-unpadded(payload_json_utf8)>.<hmac_sha256_hex(base64url_segment)>
 ```
 
 Rules:
 
-- payload segment uses standard Base64
-- Base64 must be padded
-- signature input is exactly the Base64 payload segment bytes
+- payload segment uses URL-safe Base64 (RFC 4648 §5, alphabet `A–Z a–z 0–9 - _`)
+- Base64 must be unpadded (no `=` characters)
+- signature input is exactly the base64url payload segment bytes (unpadded)
 - signature algorithm is HMAC-SHA256
 - signature output is lowercase hexadecimal
 
@@ -88,9 +88,9 @@ Canonical JSON serialization rules:
 
 Base64 requirements:
 
-- standard Base64 only
-- padded Base64 only
-- malformed or non-canonical Base64 must be rejected as `INVALID_TOKEN_FORMAT`
+- URL-safe Base64 only (RFC 4648 §5: `-` and `_` in place of `+` and `/`)
+- unpadded only (no `=` characters)
+- malformed or non-canonical base64url must be rejected as `INVALID_TOKEN_FORMAT`
 
 ## Time Semantics
 
@@ -162,7 +162,7 @@ Base64 requirements:
 
 1. Require exactly one `.` separator producing exactly two non-empty segments
 2. Verify the HMAC-SHA256 signature using constant-time comparison — any structural error in the payload must not be observable before authentication succeeds
-3. Require canonical padded standard Base64 in the payload segment
+3. Require canonical unpadded URL-safe Base64 in the payload segment
 4. Decode payload as UTF-8 JSON
 5. Reject duplicate object keys as `INVALID_TOKEN_FORMAT`
 6. Require the payload to be a JSON object
@@ -173,7 +173,7 @@ Base64 requirements:
 
 Signature verification must precede all payload content checks so that an attacker cannot distinguish a structurally malformed payload from a bad signature without possessing the secret.
 
-Malformed token shape, bad Base64, invalid JSON, duplicate keys, non-object payload, and invalid `exp` type are all `INVALID_TOKEN_FORMAT`.
+Malformed token shape, bad base64url, invalid JSON, duplicate keys, non-object payload, and invalid `exp` type are all `INVALID_TOKEN_FORMAT`.
 
 ## Error Taxonomy
 
@@ -198,7 +198,7 @@ Verification errors:
 
 Error mapping:
 
-- malformed structure, bad Base64, invalid JSON, duplicate keys, non-object payload, invalid `exp` type -> `INVALID_TOKEN_FORMAT`
+- malformed structure, bad base64url, invalid JSON, duplicate keys, non-object payload, invalid `exp` type -> `INVALID_TOKEN_FORMAT`
 - signature mismatch -> `INVALID_SIGNATURE`
 - expired token -> `EXPIRED_TOKEN`
 
@@ -225,7 +225,7 @@ Serialized JSON string:
 {"exp":1700000300,"user_id":"user-123"}
 ```
 
-Base64 payload segment:
+Base64url payload segment (unpadded):
 
 ```text
 eyJleHAiOjE3MDAwMDAzMDAsInVzZXJfaWQiOiJ1c2VyLTEyMyJ9
@@ -258,16 +258,16 @@ Serialized JSON string:
 {"custom_attrs":{"plan":"growth","region":"eu-central","segment":"b2b"},"email":"ops@example.com","exp":1700000600,"locale":"en-US","timezone":"Europe/Tbilisi","user_id":"user-full-42"}
 ```
 
-Base64 payload segment:
+Base64url payload segment (unpadded):
 
 ```text
-eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0=
+eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0
 ```
 
 Final token:
 
 ```text
-eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0=.eaa4aa059522a442eb80cb3f7977e01927539c51b6b0db8376d36e1294f4ab65
+eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0.461bc661753663f625882771413ea6c713aae4df9db73e6081190bca57b1dffe
 ```
 
 ### Example 3: Compatibility-field payload
@@ -291,7 +291,7 @@ Serialized JSON string:
 {"custom_attrs":{"tier":"pro"},"email":"owner@example.com","exp":1700000900,"locale":"en","tenant_id":"ch_demo_public_001","timezone":"Europe/Berlin","user_id":"external-77"}
 ```
 
-Base64 payload segment:
+Base64url payload segment (unpadded):
 
 ```text
 eyJjdXN0b21fYXR0cnMiOnsidGllciI6InBybyJ9LCJlbWFpbCI6Im93bmVyQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwOTAwLCJsb2NhbGUiOiJlbiIsInRlbmFudF9pZCI6ImNoX2RlbW9fcHVibGljXzAwMSIsInRpbWV6b25lIjoiRXVyb3BlL0JlcmxpbiIsInVzZXJfaWQiOiJleHRlcm5hbC03NyJ9

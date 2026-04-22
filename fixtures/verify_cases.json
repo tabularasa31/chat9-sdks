@@ -11,7 +11,7 @@
   },
   {
     "name": "verify_valid_full",
-    "token": "eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0=.eaa4aa059522a442eb80cb3f7977e01927539c51b6b0db8376d36e1294f4ab65",
+    "token": "eyJjdXN0b21fYXR0cnMiOnsicGxhbiI6Imdyb3d0aCIsInJlZ2lvbiI6ImV1LWNlbnRyYWwiLCJzZWdtZW50IjoiYjJiIn0sImVtYWlsIjoib3BzQGV4YW1wbGUuY29tIiwiZXhwIjoxNzAwMDAwNjAwLCJsb2NhbGUiOiJlbi1VUyIsInRpbWV6b25lIjoiRXVyb3BlL1RiaWxpc2kiLCJ1c2VyX2lkIjoidXNlci1mdWxsLTQyIn0.461bc661753663f625882771413ea6c713aae4df9db73e6081190bca57b1dffe",
     "secret": "secret_full_456",
     "now": 1700000000,
     "expected_payload": {
@@ -67,42 +67,43 @@
   },
   {
     "name": "missing_exp",
-    "token": "eyJ1c2VyX2lkIjoidXNlci0xMjMifQ==.072062e3c1c5c19e06fef011218ce5f2ddfbc267ac3f7ecbccf9e0834e71cf69",
+    "token": "eyJ1c2VyX2lkIjoidXNlci0xMjMifQ.22611a93f93c755a569d05a4862a2b817cd934542024daa81aa73f5031613e51",
     "secret": "secret_minimal_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
   },
   {
     "name": "duplicate_object_keys",
-    "token": "eyJleHAiOjE3MDAwMDAzMDAsInVzZXJfaWQiOiJmaXJzdCIsInVzZXJfaWQiOiJzZWNvbmQifQ==.79deb3df86565c8ca62814547c0f96400f923ed5e85055fb4d6905e42c26d218",
+    "token": "eyJleHAiOjE3MDAwMDAzMDAsInVzZXJfaWQiOiJmaXJzdCIsInVzZXJfaWQiOiJzZWNvbmQifQ.e545999c27248ee8600839589cb601a8caf95a60418821cdd9117835249f68ff",
     "secret": "secret_dup_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
   },
   {
     "name": "exp_float",
-    "token": "eyJleHAiOjE3MDAwMDAzMDAuNSwidXNlcl9pZCI6InVzZXItZmxvYXQifQ==.03d7d96544d93338f047d7db68d1d44594d66e612fb3eb9014b0263efb780aca",
+    "token": "eyJleHAiOjE3MDAwMDAzMDAuNSwidXNlcl9pZCI6InVzZXItZmxvYXQifQ.80c7e908f95aa7f5374e0c238513810cec9f9634694e2464fb910e60c62a99cc",
     "secret": "secret_float_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
   },
   {
     "name": "invalid_email_on_verify",
-    "token": "eyJlbWFpbCI6ImJhZCBlbWFpbEBleGFtcGxlLmNvbSIsImV4cCI6MTcwMDAwMDMwMCwidXNlcl9pZCI6InVzZXItMTIzIn0=.27c6386020e9852eb9a792507ccca4032a7c4806e570e75d25dcaaf163b1beae",
+    "token": "eyJlbWFpbCI6ImJhZCBlbWFpbEBleGFtcGxlLmNvbSIsImV4cCI6MTcwMDAwMDMwMCwidXNlcl9pZCI6InVzZXItMTIzIn0.a991c1ce9e95fed6ed6dc3ae3623d582ec104905bf583656c8bb99c5a64908a4",
     "secret": "secret_bad_email_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
   },
   {
     "name": "bad_base64_payload",
-    "token": "e30.b5ddaf2dcb6455ad2f7e5c00a9a46c2a72dcd57139e677901b185802ecdd63ee",
+    "description": "Payload segment contains '=' padding which is non-canonical for base64url-unpadded. HMAC is valid so the decoder reaches the canonicality check.",
+    "token": "e30=.4be6d3098697de629b8cb8e33df2f745856b8fa7015d4ca8c70459e8538ce1d6",
     "secret": "secret_bad_base64_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
   },
   {
     "name": "invalid_json_payload",
-    "token": "eyJleHAiOjE3MDAwMDAzMDAsInVzZXJfaWQiOg==.7e63af1b2cb19402f67f195a07c092a161061f02722a265eaa3378d5aa3d2d88",
+    "token": "eyJleHAiOjE3MDAwMDAzMDAsInVzZXJfaWQiOg.772bd02074f4bb31b89c14617082da7d7edc514702c07f60ca5ba20e3bb6b859",
     "secret": "secret_invalid_json_123",
     "now": 1700000000,
     "expected_error": "INVALID_TOKEN_FORMAT"
@@ -123,7 +124,7 @@
   },
   {
     "name": "invalid_base64_chars",
-    "description": "Payload segment contains '!' which is outside the base64 alphabet. HMAC is valid so the decoder reaches binascii.Error, not INVALID_SIGNATURE.",
+    "description": "Payload segment contains '!' which is outside the base64url alphabet. HMAC is valid so the decoder reaches the canonicality check, not INVALID_SIGNATURE.",
     "token": "a!b.3f705baccd6f94b6ca35e21abd3b64f9109309e5ac5640432b8f134f12a246e0",
     "secret": "secret_invalid_b64_chars",
     "now": 1700000000,

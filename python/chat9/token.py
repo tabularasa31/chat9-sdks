@@ -29,7 +29,7 @@ def _canonical_json(value: dict[str, Any]) -> str:
 
 
 def _canonical_b64(raw_bytes: bytes) -> str:
-    return base64.b64encode(raw_bytes).decode("ascii")
+    return base64.urlsafe_b64encode(raw_bytes).decode("ascii").rstrip("=")
 
 
 def _parse_json_object(raw_text: str) -> dict[str, Any]:
@@ -52,13 +52,14 @@ def _parse_json_object(raw_text: str) -> dict[str, Any]:
 
 
 def _decode_payload_segment(segment: str) -> dict[str, Any]:
+    pad = "=" * (-len(segment) % 4)
     try:
-        raw_bytes = base64.b64decode(segment, validate=True)
+        raw_bytes = base64.urlsafe_b64decode(segment + pad)
     except binascii.Error as exc:
-        raise Chat9Error("INVALID_TOKEN_FORMAT", "payload segment must be canonical Base64") from exc
+        raise Chat9Error("INVALID_TOKEN_FORMAT", "payload segment must be canonical base64url") from exc
 
     if _canonical_b64(raw_bytes) != segment:
-        _raise("INVALID_TOKEN_FORMAT", "payload segment must be canonical Base64")
+        _raise("INVALID_TOKEN_FORMAT", "payload segment must be canonical base64url")
 
     try:
         raw_text = raw_bytes.decode("utf-8")
